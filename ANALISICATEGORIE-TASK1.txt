@@ -1,0 +1,104 @@
+INFORMAZIONI DI BASE SUI PAESI:
+Paesi che sono nostri clienti:
+SELECT DISTINCT Country FROM Customers c WHERE Country NOT NULL;
+Numero di paesi che sono nostri clienti:
+SELECT COUNT(DISTINCT Country) FROM Customers c WHERE Country NOT NULL;
+
+INFO DI BASE SU PRODOTTI E CATEGORIE
+
+TUTTE LE INFO SULLE CATEGORIE:
+SELECT * FROM Categories c;
+NUMERO DI CATEGORIE PRESENTI:
+SELECT COUNT(*) AS NumberOfCategories FROM Categories c;
+
+TUTTE LE INFO SUI PRODOTTI:
+SELECT * FROM Products p;
+NUMERO DI PRODOTTI:
+SELECT COUNT(*) AS NumberOfProducts FROM Products p;
+
+Numero prodotti per categoria:
+SELECT c.CategoryID, c.CategoryName, COUNT(*) AS NumberOfProducts
+FROM Categories c 
+JOIN Products p ON c.CategoryID = p.CategoryID 
+GROUP BY c.CategoryID;
+
+Giacenza prodotti:
+SELECT ProductID, ProductName, CategoryID, UnitsInStock 
+FROM Products p;
+
+Giacenza prodotti per categorie:
+SELECT c.CategoryID, c.CategoryName, SUM(p.UnitsInStock) AS stock
+FROM Categories c 
+JOIN Products p ON c.CategoryID = p.CategoryID 
+GROUP BY c.CategoryID;
+
+Prezzo medio prodotti per categorie ordinato dal più alto al più basso:
+SELECT c.CategoryID, c.CategoryName, AVG(p.UnitPrice) AS AvgPriceInCategory
+FROM Categories c 
+JOIN Products p ON c.CategoryID = p.CategoryID 
+GROUP BY c.CategoryID
+ORDER BY AvgPriceInCategory DESC;
+
+Prezzo massimo prodotti per categorie ordinato dal più alto al più basso:
+SELECT c.CategoryID, c.CategoryName, MAX(p.UnitPrice) AS MaxPriceInCategory
+FROM Categories c 
+JOIN Products p ON c.CategoryID = p.CategoryID 
+GROUP BY c.CategoryID
+ORDER BY MaxPriceInCategory DESC;
+
+Prodotto più venduto per categoria:
+SELECT p.ProductID, p.ProductName AS BestSellerInCategory, c.CategoryID, c.CategoryName, MAX(p.UnitsOnOrder) AS MaxUnitSold
+FROM Categories c 
+JOIN Products p ON c.CategoryID = p.CategoryID
+-- WHERE p.UnitsOnOrder > 0
+GROUP BY c.CategoryID, c.CategoryName;
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+INFORMAZIONI SULLE CATEGORIE VENDUTE PER PAESE:
+TABELLE NECESSARIE: Categories(CategoryID) --> (CategoryID)Products(ProductID) --> (ProductID)Order Details(OrderID) --> (OrderID)Orders(CustomerID) --> (CustomerID)Customers 
+
+QUantità di prodotti venduti per categorie ad ogni nazione:
+
+SELECT c.Country, ca.CategoryID, ca.CategoryName, SUM(od.Quantity) AS QuantitySold
+FROM "Order Details" od 
+JOIN Orders o ON od.OrderID = o.OrderID 
+JOIN Customers c ON c.CustomerID = o.CustomerID 
+JOIN Products p ON od.ProductID = p.ProductID 
+JOIN Categories ca ON p.CategoryID = ca.CategoryID
+GROUP BY c.Country, ca.CategoryID;
+
+Fatturato totale per categorie in ogni paese:
+
+SELECT c.Country,
+       ca.CategoryID,
+       ca.CategoryName,
+       SUM(od.Quantity) AS QuantitySold,
+       SUM(od.UnitPrice * od.Quantity) AS TotIncome
+FROM "Order Details" od 
+JOIN Orders o ON od.OrderID = o.OrderID 
+JOIN Customers c ON c.CustomerID = o.CustomerID 
+JOIN Products p ON od.ProductID = p.ProductID 
+JOIN Categories ca ON p.CategoryID = ca.CategoryID
+GROUP BY c.Country, ca.CategoryID;
+
+Paesi che hanno acquistato da tutte le categorie:
+
+WITH CustCatConnec AS(
+SELECT c.Country,
+ca.CategoryName
+FROM Customers c 
+	JOIN Orders o ON c.CustomerID = o.CustomerID 
+		JOIN "Order Details" od on o.OrderID = od.OrderID 
+			JOIN Products p ON od.ProductID = p.ProductID 
+				JOIN Categories ca ON p.CategoryID = ca.CategoryID 
+GROUP BY c.Country, ca.CategoryName 
+ORDER BY c.Country 
+)
+
+SELECT CustCatConnec.Country
+FROM CustCatConnec
+GROUP BY CustCatConnec.Country
+HAVING COUNT(*) = 8; (CAMBIARE LA CONDIZIONE NELLA HAVING DA = A <> PER OTTENERE I PAESI CHE NON HANNO ACQUISTATO DA TUTTE LE CATEGORIE)
+
+
+
+
