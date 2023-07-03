@@ -10,7 +10,7 @@ ORDER BY SUM(od.Quantity) DESC
 
 
 with total_revenue as ( 
-select od.OrderID, SUM (od.UnitPriceod.Quantity) AS total_revenue_per_order
+select od.OrderID, SUM (od.UnitPrice*od.Quantity) AS total_revenue_per_order
 from "Order Details" od
 GROUP BY OrderID
 )
