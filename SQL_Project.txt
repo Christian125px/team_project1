@@ -3,54 +3,56 @@
 TASK 1 - ANALISI CATEGORIE
 
 INFORMAZIONI DI BASE SUI PAESI:
-Paesi che sono nostri clienti:
+
+-- Paesi che sono nostri clienti:
 SELECT DISTINCT Country FROM Customers c WHERE Country NOT NULL;
-Numero di paesi che sono nostri clienti:
+
+-- Numero di paesi che sono nostri clienti:
 SELECT COUNT(DISTINCT Country) FROM Customers c WHERE Country NOT NULL;
 
-INFO DI BASE SU PRODOTTI E CATEGORIE
+INFO DI BASE SU PRODOTTI E CATEGORIE:
 
-TUTTE LE INFO SULLE CATEGORIE:
+-- TUTTE LE INFO SULLE CATEGORIE:
 SELECT * FROM Categories c;
 NUMERO DI CATEGORIE PRESENTI:
 SELECT COUNT(*) AS NumberOfCategories FROM Categories c;
 
-TUTTE LE INFO SUI PRODOTTI:
+-- TUTTE LE INFO SUI PRODOTTI:
 SELECT * FROM Products p;
 NUMERO DI PRODOTTI:
 SELECT COUNT(*) AS NumberOfProducts FROM Products p;
 
-Numero prodotti per categoria:
+-- Numero prodotti per categoria:
 SELECT c.CategoryID, c.CategoryName, COUNT(*) AS NumberOfProducts
 FROM Categories c 
 JOIN Products p ON c.CategoryID = p.CategoryID 
 GROUP BY c.CategoryID;
 
-Giacenza prodotti:
+-- Giacenza prodotti:
 SELECT ProductID, ProductName, CategoryID, UnitsInStock 
 FROM Products p;
 
-Giacenza prodotti per categorie:
+-- Giacenza prodotti per categorie:
 SELECT c.CategoryID, c.CategoryName, SUM(p.UnitsInStock) AS stock
 FROM Categories c 
 JOIN Products p ON c.CategoryID = p.CategoryID 
 GROUP BY c.CategoryID;
 
-Prezzo medio prodotti per categorie ordinato dal più alto al più basso:
+-- Prezzo medio prodotti per categorie ordinato dal più alto al più basso:
 SELECT c.CategoryID, c.CategoryName, AVG(p.UnitPrice) AS AvgPriceInCategory
 FROM Categories c 
 JOIN Products p ON c.CategoryID = p.CategoryID 
 GROUP BY c.CategoryID
 ORDER BY AvgPriceInCategory DESC;
 
-Prezzo massimo prodotti per categorie ordinato dal più alto al più basso:
+-- Prezzo massimo prodotti per categorie ordinato dal più alto al più basso:
 SELECT c.CategoryID, c.CategoryName, MAX(p.UnitPrice) AS MaxPriceInCategory
 FROM Categories c 
 JOIN Products p ON c.CategoryID = p.CategoryID 
 GROUP BY c.CategoryID
 ORDER BY MaxPriceInCategory DESC;
 
-Prodotto più venduto per categoria:
+-- Prodotto più venduto per categoria:
 SELECT p.ProductID, p.ProductName AS BestSellerInCategory, c.CategoryID, c.CategoryName, MAX(p.UnitsOnOrder) AS MaxUnitSold
 FROM Categories c 
 JOIN Products p ON c.CategoryID = p.CategoryID
@@ -60,7 +62,7 @@ GROUP BY c.CategoryID, c.CategoryName;
 INFORMAZIONI SULLE CATEGORIE VENDUTE PER PAESE:
 TABELLE NECESSARIE: Categories(CategoryID) --> (CategoryID)Products(ProductID) --> (ProductID)Order Details(OrderID) --> (OrderID)Orders(CustomerID) --> (CustomerID)Customers 
 
-QUantità di prodotti venduti per categorie ad ogni nazione:
+-- QUantità di prodotti venduti per categorie ad ogni paese:
 
 SELECT c.Country, ca.CategoryID, ca.CategoryName, SUM(od.Quantity) AS QuantitySold
 FROM "Order Details" od 
@@ -70,7 +72,7 @@ JOIN Products p ON od.ProductID = p.ProductID
 JOIN Categories ca ON p.CategoryID = ca.CategoryID
 GROUP BY c.Country, ca.CategoryID;
 
-Fatturato totale per categorie in ogni paese:
+-- Fatturato totale per categorie in ogni paese:
 
 SELECT c.Country,
        ca.CategoryID,
@@ -84,7 +86,7 @@ JOIN Products p ON od.ProductID = p.ProductID
 JOIN Categories ca ON p.CategoryID = ca.CategoryID
 GROUP BY c.Country, ca.CategoryID;
 
-Paesi che hanno acquistato da tutte le categorie:
+-- Paesi che hanno acquistato da tutte le categorie:
 
 WITH CustCatConnec AS(
 SELECT c.Country,
@@ -105,7 +107,7 @@ HAVING COUNT(*) = 8; (CAMBIARE LA CONDIZIONE NELLA HAVING DA = A <> PER OTTENERE
 
 
 
-Tutte le categorie da cui ha acquistato un paese:
+-- Tutte le categorie da cui ha acquistato un paese:
 
 SELECT ca.CategoryName
  FROM Customers c 
@@ -117,7 +119,7 @@ WHERE c.Country = 'Argentina'
 GROUP BY c.Country, ca.CategoryName;
 (cambiando il Country nella WHERE si possono ottenere le informazioni sulle categorie da cui ha acquistato ogni paese)
 
-Tutte le categorie da cui un paese non ha acquistato:
+-- Tutte le categorie da cui un paese non ha acquistato:
 
 SELECT c.CategoryName 
 FROM Categories c 
@@ -152,7 +154,7 @@ WHERE c.CategoryName NOT IN cc;
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 TASK 1 - ESTRARRE INSIGHTS SULLE NAZIONI A CUI VENDE L'AZIENDA
 
-SOMMA PER LA QUANTITA' DEI PRODOTTI
+-- Prodotti venduti per paese, con ordinamento decrescente(dal paese a cui abbiamo venduto di più a quello a cui abbiamo venduto di meno)
 
 SELECT SUM(od.Quantity) AS totale_prodotti, 
 o.ShipCountry
@@ -162,7 +164,7 @@ ON o.OrderID = od.OrderID
 GROUP BY o.ShipCountry 
 ORDER BY SUM(od.Quantity) DESC
 
-
+-- Revenue totale per paese
 with total_revenue as ( 
 select od.OrderID, SUM (od.UnitPrice*od.Quantity) AS total_revenue_per_order
 from "Order Details" od
@@ -174,16 +176,7 @@ join orders o ON o.OrderID = tr.OrderID
 GROUP BY ShipCountry 
 ORDER BY total_revenue_per_country DESC
 
--- possiamo inserire qualsiasi data utile, capiamo quali aziende di quali stati hanno effettuato ordini in tale data
--- o range di date
-
-select distinct c.CompanyName, o.ShipCountry
-from Customers c
-join orders o on c.CustomerID = o.CustomerID
-where OrderDate LIKE "2017%" 
-
-
--- numero di ordini per paese
+-- Numero di ordini per paese
 select o.ShipCountry, COUNT() as total_orders_country
 from Orders o
 group by ShipCountry
@@ -193,8 +186,9 @@ group by ShipCountry
 
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
-TASK 2 - Calcolare l'ammontare delle vendite per l'azienda nei periodi 2016-2017-2018 utilizzando le tabelle Orders ed Orders Details e separare i paesi in base all'ammontare delle vendite per 3 categorie: basso, medio e alto.
-Deciderà la soglia di ciascuna categoria in base alla distribuzione normale delle vendite e/o soglie empiriche giustificate in base ai dati
+TASK 2 - Calcolare l'ammontare delle vendite per l'azienda nei periodi 2016-2017-2018 utilizzando le tabelle Orders ed Orders Details.
+         Separare i paesi in base all'ammontare delle vendite per 3 categorie: basso, medio e alto.                
+         Decidere la soglia di ciascuna categoria in base alla distribuzione normale delle vendite e/o soglie empiriche giustificate in base ai dati
 
 
 -- COMPANY REVENUES 2016(PER 2017 E 2018 BASTA CAMBIARE LA CONDIZIONE NELLA WHERE) CALCOLATI CON 3 DIVERSE, MA EQUIVALENTI, QUERY:
@@ -241,6 +235,9 @@ GROUP BY o.ShipCountry
 ORDER BY o.OrderDate;
 
 --------------------------------------------------------------------------------------------------------------------
+
+-- Analisi vendite per paese negli anni 2016-2017-2018(separatamente) con threshold identificativo dell'andamento delle vendite:
+(Per la realizzazione dei threshold abbiamo preso in considerazione il parametro revenue)
 
 -- 2016
 WITH T AS
@@ -309,7 +306,7 @@ CASE WHEN revenue < (select (max(revenue*0.35)) from T) THEN 'LOW'   -- se la re
 FROM T
 ORDER BY revenue
 
-##
+P.S.:
 Abbiamo notato che i periodi di riferimento inseriti nel Database circa le revenue dei singoli anni differiscono tra loro in modo sostanziale.
 Per l'anno 2016, il periodo di riferimento va da 04/07/2016 al 31/12/2016.
 Per l'anno 2017, il periodo di riferimento va da 01/01/2017 al 31/12/2017.
