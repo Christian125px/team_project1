@@ -7,3 +7,5 @@ Task 2
 2) Separare i paesi in base all'ammontare delle vendite per 3 categorie: basso, medio e alto. 
    Decidere la soglia di ciascuna categoria in base alla distribuzione normale delle vendite e/o soglie empiriche giustificate in base ai dati
 
+Task 3
+1) Calcolare i top 3 prodotti venduti ( task individuale )
