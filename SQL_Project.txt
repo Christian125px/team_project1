@@ -62,7 +62,7 @@ GROUP BY c.CategoryID, c.CategoryName;
 INFORMAZIONI SULLE CATEGORIE VENDUTE PER PAESE:
 TABELLE NECESSARIE: Categories(CategoryID) --> (CategoryID)Products(ProductID) --> (ProductID)Order Details(OrderID) --> (OrderID)Orders(CustomerID) --> (CustomerID)Customers 
 
--- QUantità di prodotti venduti per categorie ad ogni paese:
+-- Quantità di prodotti venduti per categorie ad ogni paese:
 
 SELECT c.Country, ca.CategoryID, ca.CategoryName, SUM(od.Quantity) AS QuantitySold
 FROM "Order Details" od 
