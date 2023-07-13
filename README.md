@@ -1,4 +1,5 @@
 # team_project1
+
 Task 1
 1) Estrarre insights sulle nazioni a cui vende l'azienda(GIANLUIGI E ALESSIO)
 2) Estrarre informazioni sulle categorie per nazione(CHRISTIAN E RICCARDO)
