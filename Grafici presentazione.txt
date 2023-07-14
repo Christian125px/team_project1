@@ -70,8 +70,6 @@ LIMIT 3;
 
 Top 3 categorie vendute:
 SELECT 
-	p.ProductID, 
-	p.ProductName, 
 	p.CategoryID, 
 	c.CategoryName, 
 	SUM(od.Quantity) AS Total 
