@@ -323,4 +323,45 @@ se la revenue del paese è < TOT1% MAX(revenue 2018) -> MEDIUM -> TOT% = 75%MAX
 
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
+TASK 3 - Top 3 prodotti venduti
+
+Top 3 prodotti venduti in generale, notando in particolare la categoria del prodotto:
+SELECT p.ProductID, p.ProductName, p.CategoryID, c.CategoryName, SUM(od.Quantity) AS Total 
+FROM Products p 
+JOIN "Order Details" od  ON p.ProductID = od.ProductID
+JOIN Categories c ON p.CategoryID = c.CategoryID 
+GROUP BY p.ProductID
+ORDER BY Total DESC 
+LIMIT 3
+
+-- 2016,2017,2018 ( NOTIAMO CHE IL CAMEMBERT PIERROT rientra nelle top 3 per ogni anno )
+-- Top 3 prodotti più venduti / ordinati complessivamente per anno, con categoria:
+SELECT p.ProductID, p.ProductName, p.CategoryID, c.CategoryName, SUM(od.Quantity) AS Total,
+SUBSTR(o.OrderDate, 1, 4) AS anno 
+FROM Products p 
+JOIN "Order Details" od  ON p.ProductID = od.ProductID
+JOIN Categories c ON p.CategoryID = c.CategoryID 
+JOIN Orders o ON od.OrderID = o.OrderID 
+WHERE o.OrderDate LIKE '2016%'
+GROUP BY p.ProductID
+ORDER BY Total DESC 
+LIMIT 3
+
+-- top 3 prodotti per revenue, con categoria:
+SELECT p.ProductID, p.ProductName, p.CategoryID, c.CategoryName, SUM(od.Quantity * od.UnitPrice) AS revenue
+FROM Products p 
+JOIN "Order Details" od  ON p.ProductID = od.ProductID
+JOIN Categories c ON p.CategoryID = c.CategoryID 
+GROUP BY p.ProductID
+ORDER BY revenue DESC 
+LIMIT 3
+
+-- top 3 prodotti per paese in base alla revenue totale ( Cote de la blaye dominio totale ):
+SELECT p.ProductID, p.ProductName, p.CategoryID, c.CategoryName, SUM(od.Quantity * od.UnitPrice) AS revenue
+FROM Products p 
+JOIN "Order Details" od  ON p.ProductID = od.ProductID
+JOIN Categories c ON p.CategoryID = c.CategoryID 
+GROUP BY p.ProductID
+ORDER BY revenue DESC 
+LIMIT 3
 
