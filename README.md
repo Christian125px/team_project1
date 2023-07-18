@@ -13,7 +13,6 @@ Task 3
 1) Calcolare i top 3 prodotti venduti ( task individuale )
 
 Task 4
-
 1) Genera un rapporto sul numero di territori di cui ogni dipendente è responsabile.
 2) Genera un rapporto sul rendimento dei dipendenti in base all'importo delle vendite e ordinali in ordine decrescente.
 3) Confronta i due rapporti.
