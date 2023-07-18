@@ -7,9 +7,10 @@ Task 1
 Task 2 
 1) Calcolare l'ammontare delle vendite per l'azienda nei periodi 2016-2017-2018 utilizzando le tabelle Orders ed Orders Details.
 2) Separare i paesi in base all'ammontare delle vendite per 3 categorie: basso, medio e alto. 
-   Decidere la soglia di ciascuna categoria in base alla distribuzione normale delle vendite e/o soglie empiriche giustificate in base ai dati
+3) Decidere la soglia di ciascuna categoria in base alla distribuzione normale delle vendite e/o soglie empiriche giustificate in base ai dati.
+   
 Task 3
-1) Calcolare i top 3 prodotti venduti ( task individuale )
+1) Calcolare i top 3 prodotti venduti (task individuale)
 
 Task 4
 1) Genera un rapporto sul numero di territori di cui ogni dipendente è responsabile.
