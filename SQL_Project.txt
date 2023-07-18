@@ -365,3 +365,183 @@ GROUP BY p.ProductID
 ORDER BY revenue DESC 
 LIMIT 3
 
+
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+
+TASK 4:
+(1) Genera un rapporto sul numero di territori di cui ogni dipendente è responsabile.
+(2) Genera un rapporto sul rendimento dei dipendenti in base all'importo delle vendite e ordinali in ordine decrescente.
+(3) Confronta i due rapporti.
+
+
+(1)
+-- Genera un rapporto sul numero di territori di cui ogni dipendente è responsabile.
+
+-- NUMERO DI TERRITORI DI CUI OGNI DIPENDENTE(EMPLOYEE) È RESPONSABILE
+
+SELECT 
+	et.EmployeeID, 
+	e.LastName, 
+	e.FirstName, 
+	e.Country,
+	COUNT(TerritoryID) AS NumTerrResp
+FROM EmployeeTerritories et 
+JOIN Employees e ON et.EmployeeID = e.EmployeeID 
+GROUP BY et.EmployeeID;
+
+P.S.: La colonna e.Country mostra il paese di provenienza del dipendente
+
+
+(2)
+-- Genera un rapporto sul rendimento dei dipendenti in base all'importo delle vendite e ordinali in ordine decrescente.
+
+SELECT 
+	e.EmployeeID, 
+	e.LastName, 
+	e.FirstName,
+	e.Country,
+	ROUND(SUM(Quantity * UnitPrice)) AS SalesAmount
+FROM Employees e 
+JOIN Orders o ON e.EmployeeID = o.EmployeeID 
+JOIN "Order Details" od ON o.OrderID = od.OrderID 
+GROUP BY e.EmployeeID 
+ORDER BY SalesAmount DESC;
+
+-- Fatturato e NumTerrResp a confronto, con info sulla Region
+
+WITH NumTerrTable AS
+(SELECT 
+	et.EmployeeID, 
+	e.LastName, 
+	e.FirstName, 
+	e.Country,
+	COUNT(TerritoryID) AS NumTerrResp
+FROM EmployeeTerritories et 
+JOIN Employees e ON et.EmployeeID = e.EmployeeID 
+GROUP BY et.EmployeeID
+),
+EmployeePerformance AS
+(SELECT 
+	e.EmployeeID, 
+	e.LastName, 
+	e.FirstName,
+	e.Country,
+	ROUND(SUM(Quantity * UnitPrice)) AS SalesAmount
+FROM Employees e 
+JOIN Orders o ON e.EmployeeID = o.EmployeeID 
+JOIN "Order Details" od ON o.OrderID = od.OrderID 
+GROUP BY e.EmployeeID 
+ORDER BY SalesAmount DESC
+ ),
+ EmployeeRegion AS
+ (SELECT 
+	DISTINCT et.EmployeeID,
+	r.RegionDescription 
+ FROM Regions r 
+ JOIN Territories t  ON r.RegionID = t.RegionID 
+ JOIN EmployeeTerritories et ON t.TerritoryID = et.TerritoryID 
+ )
+
+SELECT 
+	nt.EmployeeID, 
+	nt.LastName, 
+	nt.FirstName,
+	nt.Country,
+	nt.NumTerrResp,
+	er.RegionDescription,
+	ep.SalesAmount
+FROM NumTerrTable nt
+JOIN EmployeePerformance ep ON nt.EmployeeID = ep.EmployeeID
+JOIN EmployeeRegion er ON ep.EmployeeID = er.EmployeeID
+ORDER BY nt.NumTerrResp DESC;
+
+
+-- Relativamente alla regione, a parità di territori, chi è più performante tra USA e UK
+
+WITH NumTerrTable AS
+(SELECT 
+	et.EmployeeID, 
+	e.LastName, 
+	e.FirstName, 
+	e.Country,
+	COUNT(TerritoryID) AS NumTerrResp
+FROM EmployeeTerritories et 
+JOIN Employees e ON et.EmployeeID = e.EmployeeID 
+GROUP BY et.EmployeeID
+),
+EmployeePerformance AS
+(SELECT 
+	e.EmployeeID, 
+	e.LastName, 
+	e.FirstName,
+	e.Country,
+	ROUND(SUM(Quantity * UnitPrice)) AS SalesAmount
+FROM Employees e 
+JOIN Orders o ON e.EmployeeID = o.EmployeeID 
+JOIN "Order Details" od ON o.OrderID = od.OrderID 
+GROUP BY e.EmployeeID 
+ORDER BY SalesAmount DESC
+ ),
+ EmployeeRegion AS
+ (SELECT 
+	DISTINCT et.EmployeeID,
+	r.RegionDescription 
+ FROM Regions r 
+ JOIN Territories t  ON r.RegionID = t.RegionID 
+ JOIN EmployeeTerritories et ON t.TerritoryID = et.TerritoryID 
+ ),
+RiassumingTable AS
+( 
+SELECT 
+	nt.EmployeeID, 
+	nt.LastName, 
+	nt.FirstName,
+	nt.Country,
+	nt.NumTerrResp,
+	er.RegionDescription,
+	ep.SalesAmount
+FROM NumTerrTable nt
+JOIN EmployeePerformance ep ON nt.EmployeeID = ep.EmployeeID
+JOIN EmployeeRegion er ON ep.EmployeeID = er.EmployeeID
+ORDER BY nt.NumTerrResp DESC
+)
+
+SELECT 
+	rt1.EmployeeID, 
+	rt1.LastName, 
+	rt1.FirstName,
+	rt1.Country,
+	rt1.NumTerrResp,
+	rt1.RegionDescription,
+	rt1.SalesAmount
+FROM RiassumingTable rt1, RiassumingTable rt2
+WHERE rt1.NumTerrResp = rt2.NumTerrResp AND rt1.RegionDescription = rt2.RegionDescription
+AND rt1.EmployeeID <> rt2.EmployeeID
+
+-- Numero di ordini e fatturato totale per paese di provenienza
+SELECT 
+	e.Country, 
+	COUNT (o.OrderID) as OrderCount, 
+	ROUND(SUM(od.Quantity*od.UnitPrice),2) as TotalSales
+from Employees e
+left join Orders o on e.EmployeeID =o.EmployeeID 
+join "Order Details" od on o.OrderID = od.OrderID 
+group by e.Country 
+order by ordercount desc;
+
+
+-- Figure ( Title ) presenti in USA ma non presenti in UK
+SELECT e.Title AS OnlyUSAtitles
+FROM Employees e
+WHERE e.Country = 'USA'
+AND e.Title NOT IN 
+(SELECT e2.Title FROM Employees e2 WHERE e2.Country = 'UK')
+
+-- Confronto età medie dipendenti USA vs UK
+SELECT e.Country, AVG(DATETIME('now')  - e.BirthDate) AS AvgAge
+FROM Employees e 
+GROUP BY e.Country;
+
