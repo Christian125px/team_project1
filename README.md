@@ -16,3 +16,8 @@ Task 4
 1) Genera un rapporto sul numero di territori di cui ogni dipendente è responsabile.
 2) Genera un rapporto sul rendimento dei dipendenti in base all'importo delle vendite e ordinali in ordine decrescente.
 3) Confronta i due rapporti.
+
+Task 5
+1) Determinare la categoria di prodotti spedita nelle regioni a bassa vendita.
+2) Calcolare la data media di spedizione per ogni categoria nelle regioni a bassa vendita e confrontala con la data di spedizione richiesta.
+3) Calcolare gli effetti dello sconto nelle regioni a bassa vendita rispetto alle regioni ad alta vendita.
