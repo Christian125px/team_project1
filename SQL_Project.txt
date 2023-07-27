@@ -521,6 +521,7 @@ FROM RiassumingTable rt1, RiassumingTable rt2
 WHERE rt1.NumTerrResp = rt2.NumTerrResp AND rt1.RegionDescription = rt2.RegionDescription
 AND rt1.EmployeeID <> rt2.EmployeeID
 
+
 -- Numero di ordini e fatturato totale per paese di provenienza
 SELECT 
 	e.Country, 
@@ -545,3 +546,239 @@ SELECT e.Country, AVG(DATETIME('now')  - e.BirthDate) AS AvgAge
 FROM Employees e 
 GROUP BY e.Country;
 
+
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+
+TASK 5:
+
+(1) Determinare la categoria di prodotti spedita nelle regioni a bassa vendita.
+(2) Calcolare la data media di spedizione per ogni categoria nelle regioni a bassa vendita e confrontala con la data di spedizione richiesta.
+(3) Calcolare gli effetti dello sconto nelle regioni a bassa vendita rispetto alle regioni ad alta vendita.
+
+
+(1) 
+-- categorie e prodotti venduti nei paesi a bassa vendita
+-- Informazioni aggregate per paese e categoria
+
+SELECT o.ShipCountry, c.CategoryID, c.CategoryName, ROUND(SUM(od.UnitPrice * od.Quantity)) AS total_revenues_in_category_per_country
+FROM Categories c 
+	JOIN Products p ON c.CategoryID = p.CategoryID 
+		JOIN "Order Details" od ON p.ProductID = od.ProductID 
+			JOIN Orders o ON od.OrderID = o.OrderID 
+WHERE o.ShipCountry IN
+(WITH country_revenues_table AS
+(SELECT 
+    o.ShipCountry , 
+    SUM(od.UnitPrice * od.Quantity) AS country_revenue_triennale
+ FROM "Order Details" od 
+ 	JOIN Orders o ON od.OrderID = o.OrderID 
+ GROUP BY o.ShipCountry),
+low_revenues_country_table AS 
+(SELECT 
+    crt.ShipCountry, 
+    crt.country_revenue_triennale,
+	CASE 
+		WHEN country_revenue_triennale < (SELECT (MAX(country_revenue_triennale*0.20)) FROM country_revenues_table) THEN 'LOW'   -- se la revenue del paese è < TOT% MAX(revenue_triennale) -> LOW   -> TOT% = 20%MAX
+	    WHEN country_revenue_triennale < (SELECT (MAX(country_revenue_triennale*0.50)) FROM country_revenues_table) THEN 'MEDIUM' --  se la revenue del paese è < TOT% MAX(revenue_triennale) -> MEDIUM -> TOT% = 50%MAX
+	    ELSE 'HIGH'
+	    END AS THRESHOLD
+ FROM country_revenues_table crt
+ WHERE THRESHOLD = 'LOW'
+ ORDER BY country_revenue_triennale)
+SELECT lrct.ShipCountry
+FROM low_revenues_country_table lrct)
+GROUP BY o.ShipCountry, c.CategoryID
+-- ORDER BY o.ShipCountry, total_revenues_in_category_per_country DESC
+
+(2)
+
+--RIFERIMENTO :  data ordine > data spedizione > data richiesta ( il prodotto deve essere consegnato )
+
+-- Data spedizione - Data Ordine = TimeToProcess ( tempo per evasione fisica dell'ordine )
+-- Data Richiesta - Data Ordine  = TimeToEvade ( dall'ordine alla data richiesta dal cliente )
+
+WITH tt AS 
+(select 
+	c.CategoryID, 
+	c.CategoryName, 
+	o.ShipCountry, 
+	JULIANDAY(RequiredDate)-JULIANDAY(OrderDate) as timeToEvade, 
+	JULIANDAY(ShippedDate)-JULIANDAY(OrderDate) AS timeToProcess
+FROM Orders o
+JOIN "Order Details" od ON o.OrderID = od.OrderID
+JOIN Products p ON od.ProductID = p.ProductID
+JOIN Categories c ON p.CategoryID = c.CategoryID
+WHERE o.ShipCountry  IN (WITH country_revenues_table AS
+(SELECT 
+    o.ShipCountry , 
+    SUM(od.UnitPrice * od.Quantity) AS country_revenue_triennale
+ FROM "Order Details" od 
+ 	JOIN Orders o ON od.OrderID = o.OrderID 
+ GROUP BY o.ShipCountry),
+low_revenues_country_table AS 
+(SELECT 
+    crt.ShipCountry, 
+    crt.country_revenue_triennale,
+	CASE 
+		WHEN country_revenue_triennale < (SELECT (MAX(country_revenue_triennale*0.20)) FROM country_revenues_table) THEN 'LOW'   -- se la revenue del paese è < TOT% MAX(revenue_triennale) -> LOW   -> TOT% = 20%MAX
+	    WHEN country_revenue_triennale < (SELECT (MAX(country_revenue_triennale*0.50)) FROM country_revenues_table) THEN 'MEDIUM' --  se la revenue del paese è < TOT% MAX(revenue_triennale) -> MEDIUM -> TOT% = 50%MAX
+	    ELSE 'HIGH'
+	    END AS THRESHOLD
+ FROM country_revenues_table crt
+ WHERE THRESHOLD = 'LOW'
+ ORDER BY country_revenue_triennale)
+SELECT lrct.ShipCountry
+FROM low_revenues_country_table lrct)
+ORDER BY c.CategoryID)
+
+SELECT 
+	tt.CategoryID, 
+	tt.CategoryName,
+	tt.ShipCountry, 
+	tt.timeToEvade, 
+	tt.timeToProcess, 
+CASE
+	WHEN tt.timeToEvade > tt.timeToProcess THEN "On time"
+	ELSE "Delayed"
+END AS "Status"
+from tt
+
+
+-- AVG(ShipDate-OrderDate) per ogni categoria nei paese a bassa vendita - Tempo medio per processare gli ordini in base alla categoria
+
+SELECT 
+	c.CategoryName, 
+	CEIL(AVG(JULIANDAY(ShippedDate)-JULIANDAY(OrderDate))) AS AverageTimetoProcess
+FROM Orders o
+JOIN "Order Details" od ON o.OrderID = od.OrderID
+JOIN Products p ON od.ProductID = p.ProductID
+JOIN Categories c ON p.CategoryID = c.CategoryID
+WHERE o.ShipCountry  IN (WITH country_revenues_table AS
+(SELECT 
+    o.ShipCountry , 
+    SUM(od.UnitPrice * od.Quantity) AS country_revenue_triennale
+ FROM "Order Details" od 
+ 	JOIN Orders o ON od.OrderID = o.OrderID 
+ GROUP BY o.ShipCountry),
+low_revenues_country_table AS 
+(SELECT 
+    crt.ShipCountry, 
+    crt.country_revenue_triennale,
+	CASE 
+		WHEN country_revenue_triennale < (SELECT (MAX(country_revenue_triennale*0.20)) FROM country_revenues_table) THEN 'LOW'   -- se la revenue del paese è < TOT% MAX(revenue_triennale) -> LOW   -> TOT% = 20%MAX
+	    WHEN country_revenue_triennale < (SELECT (MAX(country_revenue_triennale*0.50)) FROM country_revenues_table) THEN 'MEDIUM' --  se la revenue del paese è < TOT% MAX(revenue_triennale) -> MEDIUM -> TOT% = 50%MAX
+	    ELSE 'HIGH'
+	    END AS THRESHOLD
+ FROM country_revenues_table crt
+ WHERE THRESHOLD = 'LOW'
+ ORDER BY country_revenue_triennale)
+SELECT lrct.ShipCountry
+FROM low_revenues_country_table lrct)
+GROUP BY c.CategoryName;
+
+-- AVG(ReqDate-OrderDate) per ogni categoria nei paese a bassa vendita - tempo medio per evadere gli ordini in base alla categoria
+
+SELECT c.CategoryName, CEIL(AVG(JULIANDAY(RequiredDate)-JULIANDAY(OrderDate))) AS AverageTimeToEvade
+FROM Orders o
+JOIN "Order Details" od ON o.OrderID = od.OrderID
+JOIN Products p ON od.ProductID = p.ProductID
+JOIN Categories c ON p.CategoryID = c.CategoryID
+WHERE o.ShipCountry  IN (WITH country_revenues_table AS
+(SELECT 
+    o.ShipCountry , 
+    SUM(od.UnitPrice * od.Quantity) AS country_revenue_triennale
+ FROM "Order Details" od 
+ 	JOIN Orders o ON od.OrderID = o.OrderID 
+ GROUP BY o.ShipCountry),
+low_revenues_country_table AS 
+(SELECT 
+    crt.ShipCountry, 
+    crt.country_revenue_triennale,
+	CASE 
+		WHEN country_revenue_triennale < (SELECT (MAX(country_revenue_triennale*0.20)) FROM country_revenues_table) THEN 'LOW'   -- se la revenue del paese è < TOT% MAX(revenue_triennale) -> LOW   -> TOT% = 20%MAX
+	    WHEN country_revenue_triennale < (SELECT (MAX(country_revenue_triennale*0.50)) FROM country_revenues_table) THEN 'MEDIUM' --  se la revenue del paese è < TOT% MAX(revenue_triennale) -> MEDIUM -> TOT% = 50%MAX
+	    ELSE 'HIGH'
+	    END AS THRESHOLD
+ FROM country_revenues_table crt
+ WHERE THRESHOLD = 'LOW'
+ ORDER BY country_revenue_triennale)
+SELECT lrct.ShipCountry
+FROM low_revenues_country_table lrct)
+GROUP BY c.CategoryName;
+
+P.S.: Abbiamo deciso di utilizzare la funzione CEIL per approssimare sempre per eccesso i tempi di evasione degli ordini e rimanere in una situazione più "conservativa"
+
+(3) 
+
+-- Effetto sconti paesi bassa vendita
+
+SELECT 
+	o.ShipCountry, 
+	ROUND(SUM(od.UnitPrice * od.Quantity)) AS total_revenues_per_country,
+	ROUND(SUM(od.UnitPrice * od.Quantity) - SUM(od.UnitPrice * od.Quantity * od.Discount)) AS total_revenues_per_country_with_discount
+FROM Categories c 
+	JOIN Products p ON c.CategoryID = p.CategoryID 
+		JOIN "Order Details" od ON p.ProductID = od.ProductID 
+			JOIN Orders o ON od.OrderID = o.OrderID 
+WHERE o.ShipCountry IN
+(WITH country_revenues_table AS
+(SELECT 
+    o.ShipCountry , 
+    SUM(od.UnitPrice * od.Quantity) AS country_revenue_triennale
+ FROM "Order Details" od 
+ 	JOIN Orders o ON od.OrderID = o.OrderID 
+ GROUP BY o.ShipCountry),
+low_revenues_country_table AS 
+(SELECT 
+    crt.ShipCountry, 
+    crt.country_revenue_triennale,
+	CASE 
+		WHEN country_revenue_triennale < (SELECT (MAX(country_revenue_triennale*0.20)) FROM country_revenues_table) THEN 'LOW'   -- se la revenue del paese è < TOT% MAX(revenue_triennale) -> LOW   -> TOT% = 20%MAX
+	    WHEN country_revenue_triennale < (SELECT (MAX(country_revenue_triennale*0.50)) FROM country_revenues_table) THEN 'MEDIUM' --  se la revenue del paese è < TOT% MAX(revenue_triennale) -> MEDIUM -> TOT% = 50%MAX
+	    ELSE 'HIGH'
+	    END AS THRESHOLD
+ FROM country_revenues_table crt
+ WHERE THRESHOLD = 'LOW'
+ ORDER BY country_revenue_triennale)
+SELECT lrct.ShipCountry
+FROM low_revenues_country_table lrct)
+GROUP BY o.ShipCountry
+
+
+-- Effetto sconti paesi ad alta vendita
+
+SELECT 
+	o.ShipCountry, 
+	ROUND(SUM(od.UnitPrice * od.Quantity)) AS total_revenues_per_country,
+	ROUND(SUM(od.UnitPrice * od.Quantity) - SUM(od.UnitPrice * od.Quantity * od.Discount)) AS total_revenues_per_country_with_discount
+FROM Categories c 
+	JOIN Products p ON c.CategoryID = p.CategoryID 
+		JOIN "Order Details" od ON p.ProductID = od.ProductID 
+			JOIN Orders o ON od.OrderID = o.OrderID 
+WHERE o.ShipCountry IN
+(WITH country_revenues_table AS
+(SELECT 
+    o.ShipCountry , 
+    SUM(od.UnitPrice * od.Quantity) AS country_revenue_triennale
+ FROM "Order Details" od 
+ 	JOIN Orders o ON od.OrderID = o.OrderID 
+ GROUP BY o.ShipCountry),
+low_revenues_country_table AS 
+(SELECT 
+    crt.ShipCountry, 
+    crt.country_revenue_triennale,
+	CASE 
+		WHEN country_revenue_triennale < (SELECT (MAX(country_revenue_triennale*0.20)) FROM country_revenues_table) THEN 'LOW'   -- se la revenue del paese è < TOT% MAX(revenue_triennale) -> LOW   -> TOT% = 20%MAX
+	    WHEN country_revenue_triennale < (SELECT (MAX(country_revenue_triennale*0.50)) FROM country_revenues_table) THEN 'MEDIUM' --  se la revenue del paese è < TOT% MAX(revenue_triennale) -> MEDIUM -> TOT% = 50%MAX
+	    ELSE 'HIGH'
+	    END AS THRESHOLD
+ FROM country_revenues_table crt
+ WHERE THRESHOLD = 'HIGH'
+ ORDER BY country_revenue_triennale)
+SELECT lrct.ShipCountry
+FROM low_revenues_country_table lrct)
+GROUP BY o.ShipCountry
+ 
