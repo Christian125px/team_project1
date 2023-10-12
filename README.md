@@ -1,23 +1,27 @@
 # team_project1
 
+
+The first project assigned to us during the Develhope bootcamp involved studying and analyzing the "Northwind" database. In particular, during various tasks, we focused on extracting insights to improve the revenue of the "Northwind" company.
+Every query is written in SQLite, in a DBeaver Client.
+
 Task 1
-1) Estrarre insights sulle nazioni a cui vende l'azienda(GIANLUIGI E ALESSIO)
-2) Estrarre informazioni sulle categorie per nazione(CHRISTIAN E RICCARDO)
+- Extract insights on the countries to which the company sells its products.
+- Extract information on categories by country.
 
 Task 2 
-1) Calcolare l'ammontare delle vendite per l'azienda nei periodi 2016-2017-2018 utilizzando le tabelle Orders ed Orders Details.
-2) Separare i paesi in base all'ammontare delle vendite per 3 categorie: basso, medio e alto. 
-3) Decidere la soglia di ciascuna categoria in base alla distribuzione normale delle vendite e/o soglie empiriche giustificate in base ai dati.
+- Calculate the total sales amount for the company in the years 2016, 2017, and 2018 using the Orders and Order Details tables.
+- Categorize countries based on the sales amount into three categories: low, medium, and high.
+- Determine the threshold for each category based on the normal distribution of sales and/or empirically justified thresholds using the data.
    
 Task 3
-1) Calcolare i top 3 prodotti venduti (task individuale)
+- Calculate the top 3 best-selling products (individual task).
 
 Task 4
-1) Genera un rapporto sul numero di territori di cui ogni dipendente è responsabile.
-2) Genera un rapporto sul rendimento dei dipendenti in base all'importo delle vendite e ordinali in ordine decrescente.
-3) Confronta i due rapporti.
+- Generate a report on the number of territories each employee is responsible for.
+- Generate a report on employee performance based on the sales amount and rank them in descending order.
+- Compare the two reports.
 
 Task 5
-1) Determinare la categoria di prodotti spedita nelle regioni a bassa vendita.
-2) Calcolare la data media di spedizione per ogni categoria nelle regioni a bassa vendita e confrontala con la data di spedizione richiesta.
-3) Calcolare gli effetti dello sconto nelle regioni a bassa vendita rispetto alle regioni ad alta vendita.
+- Determine the product category shipped to regions with low sales.
+- Calculate the average shipping date for each category in regions with low sales and compare it to the required shipping date.
+- Calculate the effects of discounts in regions with low sales compared to regions with high sales.
